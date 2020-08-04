@@ -139,7 +139,7 @@ return(bgv)
 
 make.species.database = function(fastafile){
 
-system(paste("makeblastdb -in",fastfile)
+system(paste("makeblastdb -in",fastfile))
 
 
 
@@ -230,17 +230,18 @@ setwd("../Metagenomics-genomes")
 ####on Babesia Microti genomes
 
 
-bg = readDNAStringSet("Babesia.microti.merged.fasta")
+bg = readDNAStringSet("Ehr.all.fasta")
 res2 = get.stop.start(bg[[1]])
 res3 = get.orfs(res2) 
 res4 = filter.orfs(res3)
 
 
 res5 = get.orf.to.DNAStringSet(res4,bg[[1]])
+writeXStringSet(res5,"ehrlicia.1.orf.fasta")
 
 
-
-
+#command line for blasting
+megablast -d Ehr.fasta -i ehrlicia.1.orf.fasta -D 3 > e1.txt
 
 
 
