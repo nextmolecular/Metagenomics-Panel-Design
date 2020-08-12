@@ -230,18 +230,63 @@ setwd("../Metagenomics-genomes")
 ####on Babesia Microti genomes
 
 
-bg = readDNAStringSet("Ehr.all.fasta")
+bg = readDNAStringSet("Ehr.fasta")
+
+
 res2 = get.stop.start(bg[[1]])
 res3 = get.orfs(res2) 
 res4 = filter.orfs(res3)
-
-
 res5 = get.orf.to.DNAStringSet(res4,bg[[1]])
-writeXStringSet(res5,"ehrlicia.1.orf.fasta")
+names(res5) = rep(names(bg[1]),length(res5))
+
+
+fres = res5
+
+for (i in 2:length(bg)){
+
+ res2 = get.stop.start(bg[[i]])
+ res3 = get.orfs(res2) 
+ res4 = filter.orfs(res3)
+ res5 = get.orf.to.DNAStringSet(res4,bg[[i]])
+ names(res5) = rep(names(bg[i]),length(res5))
+
+ fres = c(fres,res5)
+}
+
+
+
+
+writeXStringSet(fres,"ehrlicia.1.orf.fasta")
+
+
+
+
 
 
 #command line for blasting
-megablast -d Ehr.fasta -i ehrlicia.1.orf.fasta -D 3 > e1.txt
+system("megablast -d Ehr.fasta -i ehrlicia.1.orf.fasta -D 3 > e1.txt")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
