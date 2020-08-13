@@ -139,7 +139,7 @@ return(bgv)
 
 make.species.database = function(fastafile){
 
-system(paste("makeblastdb -in",fastfile))
+system(paste("makeblastdb -in ",fastfile," -dbtype nucl" ))
 
 
 
@@ -238,7 +238,7 @@ res3 = get.orfs(res2)
 res4 = filter.orfs(res3)
 res5 = get.orf.to.DNAStringSet(res4,bg[[1]])
 names(res5) = rep(names(bg[1]),length(res5))
-
+names(res5) = paste(names(res5),1:length(names(res5)),sep=":")
 
 fres = res5
 
@@ -249,6 +249,8 @@ for (i in 2:length(bg)){
  res4 = filter.orfs(res3)
  res5 = get.orf.to.DNAStringSet(res4,bg[[i]])
  names(res5) = rep(names(bg[i]),length(res5))
+ names(res5) = paste(names(res5),1:length(names(res5)),sep=":")
+
 
  fres = c(fres,res5)
 }
@@ -259,18 +261,25 @@ for (i in 2:length(bg)){
 writeXStringSet(fres,"ehrlicia.1.orf.fasta")
 
 
+ 
 
 
+#command line for making blastdb
+system("makeblastdb -in ehrlicia.1.orf.fasta -dbtype nucl")
 
 
 #command line for blasting
-system("megablast -d Ehr.fasta -i ehrlicia.1.orf.fasta -D 3 > e1.txt")
+system("megablast -d  Ehr.fasta -i ehrlicia.1.orf.fasta -D 3 > e1.txt")
+
+
+#parse the megablast result file
 
 
 
 
+e1 = read_tsv("e1.txt",comment="#",col_names=F)
 
-
+      
 
 
 
