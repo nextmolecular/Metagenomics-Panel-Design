@@ -280,7 +280,31 @@ system("megablast -d  Ehr.fasta -i ehrlicia.1.orf.fasta -D 3 > e1.txt")
 e1 = read_tsv("e1.txt",comment="#",col_names=F)
 
       
-
+	   
+	   
+	   
+e2 = e1 %>%
+     group_by(X1) %>%
+	 summarize(target.genomes = n_distinct(X2)) %>%
+	 filter(target.genomes ==9) %>%
+	 mutate(orf = as.numeric(str_split_fixed(X1,":",n=3)[,3])) %>%
+	 mutate(source.organism.a  = str_split_fixed(X1,":",n=3)[,1]) %>%
+	 mutate(source.organism.b  = str_split_fixed(X1,":",n=3)[,2]) %>%
+	 mutate(source.organism = str_c(source.organism.a,source.organism.b,sep= " ")) %>%
+	 select(source.organism,orf,X1) %>%
+	 arrange(source.organism,orf) 
+	 
+	 
+	 
+	 e2 %>% group_by(source.organism) %>% summarize(orfnum = n())
+	 
+	 
+	 
+	 
+	 
+     
+	 
+	 
 
 
 
