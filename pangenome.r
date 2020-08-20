@@ -17,7 +17,7 @@ get.stop.start = function(sequence){
   
   #negative strand
   stop.start = PDict(reverseComplement(DNAStringSet(c("atg", "taa", "tag", "tga"))))
-  res =  matchPDict(stop.sequence) 
+  res =  matchPDict(stop.start,sequence) 
   start = as.data.frame(res[[1]]) %>% add_column(codon = rep("start",nrow(.)))
   stop1 = as.data.frame(res[[2]]) %>% add_column(codon = rep("stop",nrow(.)))
   stop2 = as.data.frame(res[[3]]) %>% add_column(codon = rep("stop",nrow(.)))
@@ -76,25 +76,25 @@ orf.pos = res0 %>% add_row(res1) %>% add_row(res2) %>% na.omit() %>% arrange(des
 #frame1
 starttemp = -1;
 res3 = res2.0 %>% filter(strand == -1) %>% arrange(desc(end))
-county = function(end,codon){ if(codon == "start") {if(starttemp == -1){starttemp <<- end} ;return(0)}; if(starttemp == -1)return(0); rval = starttemp-end; starttemp <<- -1; return(rval)}
+county = function(end,codon){ if(codon == "start") {if(starttemp == -1){starttemp <<- end} ;return(0)}; if(starttemp == -1)return(0); rval = starttemp-end+2; starttemp <<- -1; return(rval)}
 res3 = res3 %>% rowwise() %>% mutate(x=county(end,codon))
-res4 = res3 %>% filter(x > 0) %>% mutate(ostart = end + x) %>% mutate(oend = start) %>% mutate(owidth = ostart - oend + 1) %>%
+res4 = res3 %>% filter(x > 0) %>% mutate(ostart = start) %>% mutate(oend = start+x) %>% mutate(owidth = oend -ostart + 1) %>%
                                   select(ostart,oend,owidth,strand,frame)
 
 #frame2
 starttemp = -1;
 res3 = res2.1 %>% filter(strand == -1) %>% arrange(desc(end))
-county = function(end,codon){ if(codon == "start") {if(starttemp == -1){starttemp <<- end} ;return(0)}; if(starttemp == -1)return(0); rval = starttemp-end; starttemp <<- -1; return(rval)}
+county = function(end,codon){ if(codon == "start") {if(starttemp == -1){starttemp <<- end} ;return(0)}; if(starttemp == -1)return(0); rval = starttemp-end+2; starttemp <<- -1; return(rval)}
 res3 = res3 %>% rowwise() %>% mutate(x=county(end,codon))
-res5 = res3 %>% filter(x > 0) %>% mutate(ostart = end + x) %>% mutate(oend = start) %>% mutate(owidth = oend - ostart + 1) %>%
+res5 = res3 %>% filter(x > 0) %>% mutate(ostart = start) %>% mutate(oend = start+x) %>% mutate(owidth = oend - ostart + 1) %>%
                                   select(ostart,oend,owidth,strand,frame)
 
 #frame3
 starttemp = -1;
 res3 = res2.2 %>% filter(strand == -1) %>% arrange(desc(end))
-county = function(start,codon){ if(codon == "start") {if(starttemp == -1){starttemp <<- end} ;return(0)}; if(starttemp == -1)return(0); rval = starttemp-end; starttemp <<- -1; return(rval)}
+county = function(start,codon){ if(codon == "start") {if(starttemp == -1){starttemp <<- end} ;return(0)}; if(starttemp == -1)return(0); rval = starttemp-end+2; starttemp <<- -1; return(rval)}
 res3 = res3 %>% rowwise() %>% mutate(x=county(end,codon))
-res6 = res3 %>% filter(x > 0) %>% mutate(ostart = end + x) %>% mutate(oend = start) %>% mutate(owidth = oend - ostart + 1) %>%
+res6 = res3 %>% filter(x > 0) %>% mutate(ostart = start) %>% mutate(oend = start+x) %>% mutate(owidth = oend - ostart + 1) %>%
                                   select(ostart,oend,owidth,strand,frame)
 
 
@@ -241,6 +241,10 @@ names(res5) = rep(names(bg[1]),length(res5))
 names(res5) = paste(names(res5),1:length(names(res5)),sep=":")
 
 fres = res5
+
+
+
+
 
 for (i in 2:length(bg)){
 
