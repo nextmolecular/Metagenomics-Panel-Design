@@ -92,7 +92,7 @@ res5 = res3 %>% filter(x > 0) %>% mutate(ostart = start) %>% mutate(oend = start
 #frame3
 starttemp = -1;
 res3 = res2.2 %>% filter(strand == -1) %>% arrange(desc(end))
-county = function(start,codon){ if(codon == "start") {if(starttemp == -1){starttemp <<- end} ;return(0)}; if(starttemp == -1)return(0); rval = starttemp-end+2; starttemp <<- -1; return(rval)}
+county = function(end,codon){ if(codon == "start") {if(starttemp == -1){starttemp <<- end} ;return(0)}; if(starttemp == -1)return(0); rval = starttemp-end+2; starttemp <<- -1; return(rval)}
 res3 = res3 %>% rowwise() %>% mutate(x=county(end,codon))
 res6 = res3 %>% filter(x > 0) %>% mutate(ostart = start) %>% mutate(oend = start+x) %>% mutate(owidth = oend - ostart + 1) %>%
                                   select(ostart,oend,owidth,strand,frame)
@@ -125,9 +125,14 @@ filter.orfs = function(orf){
 
 
 
-get.orf.to.DNAStringSet = function(orf,sequence){
+get.orf.to.DNAStringSet = function(orf,sequence,sequencename){
 
 bgv = DNAStringSet(Views(sequence,start=orf$ostart,end=orf$oend))
+names(bgv) = rep(sequencename,length(bgv))
+names(bgv) = paste(names(bgv),1:length(names(bgv)),sep=":")
+
+
+
 return(bgv)
 
 }
@@ -236,11 +241,8 @@ bg = readDNAStringSet("Ehr.fasta")
 res2 = get.stop.start(bg[[1]])
 res3 = get.orfs(res2) 
 res4 = filter.orfs(res3)
-res5 = get.orf.to.DNAStringSet(res4,bg[[1]])
-names(res5) = rep(names(bg[1]),length(res5))
-names(res5) = paste(names(res5),1:length(names(res5)),sep=":")
-
-fres = res5
+res5 = get.orf.to.DNAStringSet(res4,bg[[1]],names(bg[1]))
+fres=res5
 
 
 
@@ -251,10 +253,8 @@ for (i in 2:length(bg)){
  res2 = get.stop.start(bg[[i]])
  res3 = get.orfs(res2) 
  res4 = filter.orfs(res3)
- res5 = get.orf.to.DNAStringSet(res4,bg[[i]])
- names(res5) = rep(names(bg[i]),length(res5))
- names(res5) = paste(names(res5),1:length(names(res5)),sep=":")
-
+ res5 = get.orf.to.DNAStringSet(res4,bg[[i]],names(bg[i]))
+ 
 
  fres = c(fres,res5)
 }
@@ -283,7 +283,6 @@ system("megablast -d  Ehr.fasta -i ehrlicia.1.orf.fasta -D 3 > e1.txt")
 
 e1 = read_tsv("e1.txt",comment="#",col_names=F)
 
-      
 	   
 	   
 	   
@@ -295,12 +294,45 @@ e2 = e1 %>%
 	 mutate(source.organism.a  = str_split_fixed(X1,":",n=3)[,1]) %>%
 	 mutate(source.organism.b  = str_split_fixed(X1,":",n=3)[,2]) %>%
 	 mutate(source.organism = str_c(source.organism.a,source.organism.b,sep= " ")) %>%
-	 select(source.organism,orf,X1) %>%
-	 arrange(source.organism,orf) 
+	 arrange(source.organism,orf) %>%
+	 select(source.organism,orf,X1) 
 	 
 	 
+f2 = fres[names(fres) %in% e2$X1]
+writeXStringSet(f2,"ehrlicia.core.orf.fasta")
+
+
+
+
+##############################################################
+#  Find common kmers  ########################################
+##############################################################
+
+
+
+
+sequence = f2[[1]]
+
+sequencelength = length(sequence)
+kmerlength = 150
+
+
+start1 = 1 
+start2 = sequencelength - kmerlength + 1
+end1 = kmerlength
+end2 = sequencelength
+
+
+
+res = DNAStringSet(Views(sequence,start=start1:start2,end=end1:end2))
+
+
+
+
+
+ 
+	
 	 
-	 e2 %>% group_by(source.organism) %>% summarize(orfnum = n())
 	 
 	 
 	 
