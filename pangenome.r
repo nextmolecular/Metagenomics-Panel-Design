@@ -32,7 +32,7 @@ get.stop.start = function(sequence){
 
 
 get.orfs = function(stop.start){
-
+##Purpose: Generate predicted open-reading-frames from stop.start data
 
 res2.0 = stop.start %>% filter(frame == 0)
 res2.1 = stop.start %>% filter(frame == 1)
@@ -309,9 +309,12 @@ writeXStringSet(f2,"ehrlicia.core.orf.fasta")
 ##############################################################
 
 
+#load species fasta
+bg = readDNAStringSet("Ehr.fasta")
 
 
-sequence = f2[[1]]
+
+sequence = f2[[30]
 
 sequencelength = length(sequence)
 kmerlength = 150
@@ -325,12 +328,10 @@ end2 = sequencelength
 
 
 res = DNAStringSet(Views(sequence,start=start1:start2,end=end1:end2))
+r2 = PDict(res,tb.start=NA,tb.end=NA)
 
 
-
-
-
- 
+r3 = vcountPDict(r2,bg,max.mismatch=1)
 	
 	 
 	 
@@ -338,7 +339,35 @@ res = DNAStringSet(Views(sequence,start=start1:start2,end=end1:end2))
 	 
 	 
 	 
-     
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+ 
 	 
 	 
 
