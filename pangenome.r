@@ -277,14 +277,10 @@ system("megablast -d  Ehr.fasta -i ehrlicia.1.orf.fasta -D 3 > e1.txt")
 
 
 #parse the megablast result file
-
-
-
-
+#and find core orfs shared by all strains
 e1 = read_tsv("e1.txt",comment="#",col_names=F)
 
-	   
-	   
+
 	   
 e2 = e1 %>%
      group_by(X1) %>%
@@ -303,23 +299,40 @@ writeXStringSet(f2,"ehrlicia.core.orf.fasta")
 
 
 
+#find cluster of strains
+e3 = e1 %>%
+     select(X1,X2) %>%
+	 distinct(.) %>%
+	 mutate(strain = as.vector(str_split_fixed(X1,":[:digit:]+$",n=2)[,1])) %>%
+	 select(source.strain = X2, target.strain = strain) %>%
+	 group_by(source.strain,target.strain) %>%
+	 summarize(n()) %>%
+	 select(source.strain=source.strain,target.strain = target.strain,count='n()') %>%
+     spread(target.strain,count)	  
+	  
+	  
+	  
+	  
 
 ##############################################################
 #  Find common kmers  ########################################
 ##############################################################
 
 
+
 #load species fasta
 bg = readDNAStringSet("Ehr.fasta")
+f1 = readDNAStringSet("ehrlicia.core.orf.fasta")
+
+f2 = f1[1:1185]
 
 
 
-sequence = f2[[30]
+sequence = f2[[112]]
+
 
 sequencelength = length(sequence)
 kmerlength = 150
-
-
 start1 = 1 
 start2 = sequencelength - kmerlength + 1
 end1 = kmerlength
@@ -328,13 +341,79 @@ end2 = sequencelength
 
 
 res = DNAStringSet(Views(sequence,start=start1:start2,end=end1:end2))
-r2 = PDict(res,tb.start=NA,tb.end=NA)
+r2 = PDict(res)
 
 
-r3 = vcountPDict(r2,bg,max.mismatch=1)
+r3 = vcountPDict(r2,bg)
 	
+###
+
+	 
+
+##first strain orfs	
+
+
+
+
+get.common.oligo = function(sequence,strain.sequences){
+   
+   sequencelength = nchar(sequence)
+   kmerlength = 150
+   start1 = 1 
+   start2 = sequencelength - kmerlength + 1
+   end1 = kmerlength
+   end2 = sequencelength
+
+   res = DNAStringSet(Views(sequence,start=start1:start2,end=end1:end2))
+   r2 = PDict(res)
+   r3 = vcountPDict(r2,bg) 
+	
+}
+
+
+f2 = tibble(as.data.frame(f1[1:1185])) %>% 
+     mutate(names=names(f1)[1:1185]) %>%
+	 rowwise() %>%
+	 summarize(res= get.common.oligo(x,bg) ) 
+	 
+f3 = tibble(as.data.frame(f2$res))	 
+f4 = f3 %>%
+	 mutate(matches = length(which(f3[1,] >  0)))
+      	 
 	 
 	 
+	 
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+sequence = f2[[102]]
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+	
 	 
 	 
 	 
