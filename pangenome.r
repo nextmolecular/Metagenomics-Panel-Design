@@ -141,17 +141,6 @@ return(bgv)
 
 
 
-
-make.species.database = function(fastafile){
-
-system(paste("makeblastdb -in ",fastfile," -dbtype nucl" ))
-
-
-
-
-}
-
-
 get.core.genome = function(fastafile,species.database){
 
 
@@ -267,22 +256,38 @@ writeXStringSet(fres,"ehrlicia.1.orf.fasta")
 
  
 
+get.core.genome = function(orf.fasta,species.fasta,orf.core.fasta){
 
-#command line for making blastdb
-system("makeblastdb -in ehrlicia.1.orf.fasta -dbtype nucl")
+#Purpose:Compute the core set of ORFs for a given set of strains in a species
+#Input:
+#  orf.fasta: name of the fasta file holding the species ORFs 
+#  species.fasta: name of the fasta file holding the species genomes
+#  orf.core.fasta: name for the fasta file to be output for the core species ORFs
+#Output:
+#  orf.core.fasta: fasta file of the core species ORFs
+#  orf.genome.blast (returned): tibble holding the result of blasting ORFs against species genomes
+
+#command line for making species blastdb
+print("Creating Species Database ...")
+system(paste("makeblastdb -in ",species.fasta," -dbtype nucl"))
+
+
+#command line for making orf blastdb
+print("Creating ORF Database ...")
+system(paste("makeblastdb -in ",orf.fasta," -dbtype nucl"))
 
 
 #command line for blasting
-system("megablast -d  Ehr.fasta -i ehrlicia.1.orf.fasta -D 3 > e1.txt")
-
+print("Blasting ORF vs Species Database ...")
+system(paste("megablast -d ",species.fasta," -i ",orf.fasta," -D 3 > e1.txt")) 
 
 #parse the megablast result file
 #and find core orfs shared by all strains
-e1 = read_tsv("e1.txt",comment="#",col_names=F)
+orf.genome.blast = read_tsv("e1.txt",comment="#",col_names=F)
 
 
 	   
-e2 = e1 %>%
+e2 = orf.genome.blast %>%
      group_by(X1) %>%
 	 summarize(target.genomes = n_distinct(X2)) %>%
 	 filter(target.genomes ==9) %>%
@@ -294,8 +299,23 @@ e2 = e1 %>%
 	 select(source.organism,orf,X1) 
 	 
 	 
+fres =readDNAStringSet(orf.fasta)	 
 f2 = fres[names(fres) %in% e2$X1]
-writeXStringSet(f2,"ehrlicia.core.orf.fasta")
+writeXStringSet(f2,orf.core.fasta)
+
+
+return(orf.genome.blast)
+
+
+
+}
+
+
+
+res = get.core.genome("ehrlicia.1.orf.fasta","Ehr.fasta","ehrlicia.1.core.orf.fasta")
+
+
+
 
 
 
@@ -308,7 +328,8 @@ e3 = e1 %>%
 	 group_by(source.strain,target.strain) %>%
 	 summarize(n()) %>%
 	 select(source.strain=source.strain,target.strain = target.strain,count='n()') %>%
-     spread(target.strain,count)	  
+     spread(target.strain,count) %>%
+     column_to_rownames("source.strain")	 
 	  
 	  
 	  
