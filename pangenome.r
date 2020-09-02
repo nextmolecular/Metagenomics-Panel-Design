@@ -199,8 +199,6 @@ return(orf.genome.blast)
 
 
 
-
-
 get.orf.clusters = function(orf.genome.blast,centers=2){
 #Purpose:
 #Input:
@@ -229,21 +227,14 @@ return(e3.kmeans$cluster)
 
 
 
-
-get.unique.core.genome = function(fastafile,databaselocation){
-
-
-}
-
-
-
-
-
-get.oligos.from.unique.core.genome = function(fastafile,oligofile){
+get.oligos.from.core.genome = function(fastafile,oligofile){
 
 
 
 }
+
+
+
 
 
 
@@ -332,9 +323,9 @@ writeXStringSet(fres,"ehrlicia.1.orf.fasta")
 
 
 
+
 res = get.core.genome("ehrlicia.1.orf.fasta","Ehr.fasta","ehrlicia.1.core.orf.fasta")
-
-
+clusters = get.orf.clusters(res,centers=2)
 
 
 
@@ -357,7 +348,7 @@ f2 = f1[1:1185]
 
 
 
-sequence = f2[[112]]
+sequence = f2[[224]]
 
 
 sequencelength = length(sequence)
@@ -384,30 +375,59 @@ r3 = vcountPDict(r2,bg)
 
 
 
-get.common.oligo = function(sequence,strain.sequences){
+get.common.oligo = function(sequence,strain.sequences,name,kmerlength=150){
    
    sequencelength = nchar(sequence)
-   kmerlength = 150
    start1 = 1 
    start2 = sequencelength - kmerlength + 1
    end1 = kmerlength
    end2 = sequencelength
 
    res = DNAStringSet(Views(sequence,start=start1:start2,end=end1:end2))
+   
    r2 = PDict(res)
-   r3 = vcountPDict(r2,bg) 
+   r3 = vcountPDict(r2,bg)
+   f3 = tibble(as.data.frame(r3))	
+   f3[f3 > 0] =1
+
+   
+   r4 = tibble(as.data.frame(res)) 
+   r5 = r4 %>% mutate(names=rep(name,nrow(r4))) %>% filter(rowSums(f3)>5)
+   
+   
+   return(r5)
+   
+   
 	
 }
 
 
-f2 = tibble(as.data.frame(f1[1:1185])) %>% 
-     mutate(names=names(f1)[1:1185]) %>%
+
+
+
+
+kmer.collection = f1[1:1185]
+f2 = tibble(as.data.frame(kmer.collection)) %>% 
+     mutate(name=names(kmer.collection)) %>%
 	 rowwise() %>%
-	 summarize(res= get.common.oligo(x,bg) ) 
+	 summarize(res= get.common.oligo(x,bg,name) ) 
 	 
-f3 = tibble(as.data.frame(f2$res))	 
+	 
+	 
+	 
+	 
+	 
+	 
+f3 = tibble(as.data.frame(f2$res))	
+f3[f3 > 0] =1
+
+km2 = kmer.collection[rowSums(f3) > 4]
+
+
+
 f4 = f3 %>%
-	 mutate(matches = length(which(f3[1,] >  0)))
+ 	 mutate(mm = rowSums(.)) %>%
+	 filter(mm > 6)
       	 
 	 
 	 
