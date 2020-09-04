@@ -375,7 +375,7 @@ r3 = vcountPDict(r2,bg)
 
 #filter by sequence complexity
 dn1 = tibble(as.data.frame(dinucleotideFrequency(res))) %>% mutate(dn = (AA+TT+GG+CC)/(rowSums(.)))
-
+tn1 = tibble(as.data.frame(trinucleotideFrequency(res))) %>% mutate(tn = (AAA+TTT+GGG+CCC)/(rowSums(.)))
 
 ###
 
@@ -386,7 +386,7 @@ dn1 = tibble(as.data.frame(dinucleotideFrequency(res))) %>% mutate(dn = (AA+TT+G
 
 
 
-get.common.oligo = function(sequence,strain.sequences,name,kmerlength=150,gc.min=.40,gc.max=.60,dn.threshold=0.3){
+get.common.oligo = function(sequence,strain.sequences,name,kmerlength=150,gc.min=.40,gc.max=.60,dn.threshold=0.3,tn.threshold=0.0625){
    
    
      
@@ -406,7 +406,8 @@ get.common.oligo = function(sequence,strain.sequences,name,kmerlength=150,gc.min
    #filter by sequence complexity
    dn1 = tibble(as.data.frame(dinucleotideFrequency(res))) %>% mutate(dn = (AA+TT+GG+CC)/(rowSums(.)))
    dn.vector = (dn1$dn < dn.threshold)
-
+   tn1 = tibble(as.data.frame(trinucleotideFrequency(res))) %>% mutate(tn = (AAA+TTT+GGG+CCC)/(rowSums(.)))
+   tn.vector = (tn1$tn < tn.threshold)
    
    r2 = PDict(res)
    r3 = vcountPDict(r2,bg)
@@ -414,7 +415,7 @@ get.common.oligo = function(sequence,strain.sequences,name,kmerlength=150,gc.min
    f3[f3 > 0] =1
 
    
-   filtervector = (rowSums(f3)>6) & (gc.vector) & (dn.vector)
+   filtervector = (rowSums(f3)>6) & (gc.vector) & (dn.vector) & (tn.vector)
    
    r4 = tibble(as.data.frame(res)) 
    r5 = r4 %>% mutate(name=rep(name,nrow(r4))) %>% filter(filtervector)
