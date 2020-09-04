@@ -362,10 +362,21 @@ end2 = sequencelength
 
 res = DNAStringSet(Views(sequence,start=start1:start2,end=end1:end2))
 r2 = PDict(res)
-
-
 r3 = vcountPDict(r2,bg)
 	
+
+#filter by GC content
+gc1 = tibble(as.data.frame(alphabetFrequency(res))) %>% mutate(GC = (C+G)/(A+C+G+T))
+res2 = res[(gc1$GC >=.40) & (gc1$GC <=.60)]
+
+r2 = PDict(res2)
+r3 = vcountPDict(r2,bg)
+
+
+#filter by sequence complexity
+dn1 = tibble(as.data.frame(dinucleotideFrequency(res))) %>% mutate(dn = (AA+TT+GG+CC)/(rowSums(.)))
+
+
 ###
 
 	 
@@ -375,8 +386,10 @@ r3 = vcountPDict(r2,bg)
 
 
 
-get.common.oligo = function(sequence,strain.sequences,name,kmerlength=150){
+get.common.oligo = function(sequence,strain.sequences,name,kmerlength=150,gc.min=.40,gc.max=.60,dn.threshold=0.3){
    
+   
+     
    sequencelength = nchar(sequence)
    start1 = 1 
    start2 = sequencelength - kmerlength + 1
@@ -385,22 +398,31 @@ get.common.oligo = function(sequence,strain.sequences,name,kmerlength=150){
 
    res = DNAStringSet(Views(sequence,start=start1:start2,end=end1:end2))
    
+   #filter by GC content
+   gc1 = tibble(as.data.frame(alphabetFrequency(res))) %>% mutate(GC = (C+G)/(A+C+G+T)) 
+   gc.vector = (gc1$GC >=gc.min) & (gc1$GC <=gc.max)
+
+
+   #filter by sequence complexity
+   dn1 = tibble(as.data.frame(dinucleotideFrequency(res))) %>% mutate(dn = (AA+TT+GG+CC)/(rowSums(.)))
+   dn.vector = (dn1$dn < dn.threshold)
+
+   
    r2 = PDict(res)
    r3 = vcountPDict(r2,bg)
    f3 = tibble(as.data.frame(r3))	
    f3[f3 > 0] =1
 
    
+   filtervector = (rowSums(f3)>6) & (gc.vector) & (dn.vector)
+   
    r4 = tibble(as.data.frame(res)) 
-   r5 = r4 %>% mutate(names=rep(name,nrow(r4))) %>% filter(rowSums(f3)>5)
+   r5 = r4 %>% mutate(name=rep(name,nrow(r4))) %>% filter(filtervector)
    
    
    return(r5)
    
-   
-	
 }
-
 
 
 
