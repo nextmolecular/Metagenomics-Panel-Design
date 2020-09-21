@@ -4,29 +4,30 @@
 
 get.stop.start = function(sequence){
   ##Purpose: Identify start and stop sites in a DNAString
-  
+
   #positive strand
   stop.start = PDict(DNAStringSet(c("atg", "taa", "tag", "tga")))
-  res =  matchPDict(stop.start,sequence) 
+  res =  matchPDict(stop.start,sequence)
   start = as.data.frame(res[[1]]) %>% add_column(codon = rep("start",nrow(.)))
   stop1 = as.data.frame(res[[2]]) %>% add_column(codon = rep("stop",nrow(.)))
   stop2 = as.data.frame(res[[3]]) %>% add_column(codon = rep("stop",nrow(.)))
   stop3 = as.data.frame(res[[4]]) %>% add_column(codon = rep("stop",nrow(.)))
   rr1 = tibble(rbind(start,stop1,stop2,stop3)) %>% add_column(strand = rep("1",nrow(.)))
-  
-  
+
+
   #negative strand
   stop.start = PDict(reverseComplement(DNAStringSet(c("atg", "taa", "tag", "tga"))))
-  res =  matchPDict(stop.start,sequence) 
+  res =  matchPDict(stop.start,sequence)
   start = as.data.frame(res[[1]]) %>% add_column(codon = rep("start",nrow(.)))
   stop1 = as.data.frame(res[[2]]) %>% add_column(codon = rep("stop",nrow(.)))
   stop2 = as.data.frame(res[[3]]) %>% add_column(codon = rep("stop",nrow(.)))
   stop3 = as.data.frame(res[[4]]) %>% add_column(codon = rep("stop",nrow(.)))
   rr2 = rbind(start,stop1,stop2,stop3) %>% add_column(strand = rep("-1",nrow(.)))
-  
+
   ss = rbind(rr1,rr2)
   ss = ss %>% mutate(frame = start %% 3)
 }
+
 
 
 
@@ -48,7 +49,7 @@ county = function(start,codon){ if(codon == "start") {if(starttemp == -1){startt
 res0 = res3 %>% rowwise() %>% mutate(x=county(start,codon))
 res0 = res0 %>% filter(x > 0) %>% mutate(ostart = start -x) %>% mutate(oend = end) %>% mutate(owidth = oend - ostart + 1) %>%
                                   select(ostart,oend,owidth,strand,frame)
-						  
+
 
 #frame 2
 starttemp = -1;
@@ -72,7 +73,7 @@ orf.pos = res0 %>% add_row(res1) %>% add_row(res2) %>% na.omit() %>% arrange(des
 
 
 #negative strand
- 
+
 #frame1
 starttemp = -1;
 res3 = res2.0 %>% filter(strand == -1) %>% arrange(desc(end))
@@ -114,7 +115,6 @@ return(tibble(orf.all))
 
 
 
-
 filter.orfs = function(orf){
 
 
@@ -122,6 +122,8 @@ filter.orfs = function(orf){
 
 
 }
+
+
 
 
 
@@ -139,13 +141,13 @@ return(bgv)
 
 
 
- 
+
 
 get.core.genome = function(orf.fasta,species.fasta,orf.core.fasta){
 
 #Purpose:Compute the core set of ORFs for a given set of strains in a species
 #Input:
-#  orf.fasta: name of the fasta file holding the species ORFs 
+#  orf.fasta: name of the fasta file holding the species ORFs
 #  species.fasta: name of the fasta file holding the species genomes
 #  orf.core.fasta: name for the fasta file to be output for the core species ORFs
 #Output:
@@ -164,14 +166,14 @@ system(paste("makeblastdb -in ",orf.fasta," -dbtype nucl"))
 
 #command line for blasting
 print("Blasting ORF vs Species Database ...")
-system(paste("megablast -d ",species.fasta," -i ",orf.fasta," -D 3 > e1.txt")) 
+system(paste("megablast -d ",species.fasta," -i ",orf.fasta," -D 3 > e1.txt"))
 
 #parse the megablast result file
 #and find core orfs shared by all strains
 orf.genome.blast = read_tsv("e1.txt",comment="#",col_names=F)
 
 
-	   
+
 e2 = orf.genome.blast %>%
      group_by(X1) %>%
 	 summarize(target.genomes = n_distinct(X2)) %>%
@@ -181,10 +183,10 @@ e2 = orf.genome.blast %>%
 	 mutate(source.organism.b  = str_split_fixed(X1,":",n=3)[,2]) %>%
 	 mutate(source.organism = str_c(source.organism.a,source.organism.b,sep= " ")) %>%
 	 arrange(source.organism,orf) %>%
-	 select(source.organism,orf,X1) 
-	 
-	 
-fres =readDNAStringSet(orf.fasta)	 
+	 select(source.organism,orf,X1)
+
+
+fres =readDNAStringSet(orf.fasta)
 f2 = fres[names(fres) %in% e2$X1]
 writeXStringSet(f2,orf.core.fasta)
 
@@ -214,16 +216,23 @@ e3 = orf.genome.blast %>%
 	 summarize(n()) %>%
 	 select(source.strain=source.strain,target.strain = target.strain,count='n()') %>%
      spread(target.strain,count) %>%
-     column_to_rownames("source.strain")	 
-	  
+     column_to_rownames("source.strain")
+
 e3.kmeans  = kmeans(e3,centers=centers)
 
-return(e3.kmeans$cluster)	  
+return(e3.kmeans$cluster)
 
-}	  
-	  
+}
 
 
+
+get.reference.genomes(){
+#Purpose: To Download collections of reference genomes from NCBI
+
+library(biomartr)
+meta.retrieval(kingdom = "bacteria",db="refseq",type="genome", reference=TRUE)
+
+}
 
 
 
@@ -279,13 +288,14 @@ find.unique.primers = function(primerfile,databaselocation){
 
 
 
-
-
-
 library(tidyverse)
 library(Biostrings)
 
-setwd("../Metagenomics-genomes")
+
+
+
+
+
 
 
 
@@ -294,9 +304,8 @@ setwd("../Metagenomics-genomes")
 
 bg = readDNAStringSet("Ehr.fasta")
 
-
 res2 = get.stop.start(bg[[1]])
-res3 = get.orfs(res2) 
+res3 = get.orfs(res2)
 res4 = filter.orfs(res3)
 res5 = get.orf.to.DNAStringSet(res4,bg[[1]],names(bg[1]))
 fres=res5
@@ -305,13 +314,16 @@ fres=res5
 
 
 
+
+
+
 for (i in 2:length(bg)){
 
  res2 = get.stop.start(bg[[i]])
- res3 = get.orfs(res2) 
+ res3 = get.orfs(res2)
  res4 = filter.orfs(res3)
  res5 = get.orf.to.DNAStringSet(res4,bg[[i]],names(bg[i]))
- 
+
 
  fres = c(fres,res5)
 }
@@ -348,12 +360,19 @@ f2 = f1[1:1185]
 
 
 
+
+
+
+
+
+
+
 sequence = f2[[224]]
 
 
 sequencelength = length(sequence)
 kmerlength = 150
-start1 = 1 
+start1 = 1
 start2 = sequencelength - kmerlength + 1
 end1 = kmerlength
 end2 = sequencelength
@@ -363,7 +382,7 @@ end2 = sequencelength
 res = DNAStringSet(Views(sequence,start=start1:start2,end=end1:end2))
 r2 = PDict(res)
 r3 = vcountPDict(r2,bg)
-	
+
 
 #filter by GC content
 gc1 = tibble(as.data.frame(alphabetFrequency(res))) %>% mutate(GC = (C+G)/(A+C+G+T))
@@ -379,27 +398,27 @@ tn1 = tibble(as.data.frame(trinucleotideFrequency(res))) %>% mutate(tn = (AAA+TT
 
 ###
 
-	 
-
-##first strain orfs	
 
 
+##first strain orfs
 
 
-get.common.oligo = function(sequence,strain.sequences,name,kmerlength=150,gc.min=.40,gc.max=.60,dn.threshold=0.3,tn.threshold=0.0625){
-   
-   
-     
+
+
+get.common.oligo = function(sequence,strain.sequences,name,kmerlength=150,gc.min=.40,gc.max=.60,dn.threshold=0.25,tn.threshold=0.0625){
+
+
+
    sequencelength = nchar(sequence)
-   start1 = 1 
+   start1 = 1
    start2 = sequencelength - kmerlength + 1
    end1 = kmerlength
    end2 = sequencelength
 
    res = DNAStringSet(Views(sequence,start=start1:start2,end=end1:end2))
-   
+
    #filter by GC content
-   gc1 = tibble(as.data.frame(alphabetFrequency(res))) %>% mutate(GC = (C+G)/(A+C+G+T)) 
+   gc1 = tibble(as.data.frame(alphabetFrequency(res))) %>% mutate(GC = (C+G)/(A+C+G+T))
    gc.vector = (gc1$GC >=gc.min) & (gc1$GC <=gc.max)
 
 
@@ -408,21 +427,21 @@ get.common.oligo = function(sequence,strain.sequences,name,kmerlength=150,gc.min
    dn.vector = (dn1$dn < dn.threshold)
    tn1 = tibble(as.data.frame(trinucleotideFrequency(res))) %>% mutate(tn = (AAA+TTT+GGG+CCC)/(rowSums(.)))
    tn.vector = (tn1$tn < tn.threshold)
-   
+
    r2 = PDict(res)
    r3 = vcountPDict(r2,bg)
-   f3 = tibble(as.data.frame(r3))	
+   f3 = tibble(as.data.frame(r3))
    f3[f3 > 0] =1
 
-   
+
    filtervector = (rowSums(f3)>6) & (gc.vector) & (dn.vector) & (tn.vector)
-   
-   r4 = tibble(as.data.frame(res)) 
+
+   r4 = tibble(as.data.frame(res))
    r5 = r4 %>% mutate(name=rep(name,nrow(r4))) %>% filter(filtervector)
-   
-   
+
+
    return(r5)
-   
+
 }
 
 
@@ -430,18 +449,18 @@ get.common.oligo = function(sequence,strain.sequences,name,kmerlength=150,gc.min
 
 
 kmer.collection = f1[1:1185]
-f2 = tibble(as.data.frame(kmer.collection)) %>% 
+f2 = tibble(as.data.frame(kmer.collection)) %>%
      mutate(name=names(kmer.collection)) %>%
 	 rowwise() %>%
-	 summarize(res= get.common.oligo(x,bg,name) ) 
-	 
-	 
-	 
-	 
-	 
-	 
-	 
-f3 = tibble(as.data.frame(f2$res))	
+	 summarize(res= get.common.oligo(x,bg,name) )
+
+
+
+
+
+
+
+f3 = tibble(as.data.frame(f2$res))
 f3[f3 > 0] =1
 
 km2 = kmer.collection[rowSums(f3) > 4]
@@ -451,13 +470,13 @@ km2 = kmer.collection[rowSums(f3) > 4]
 f4 = f3 %>%
  	 mutate(mm = rowSums(.)) %>%
 	 filter(mm > 6)
-      	 
-	 
-	 
-	 
- 
- 
- 
+
+
+
+
+
+
+
 
 
 
@@ -472,8 +491,6 @@ f4 = f3 %>%
 
 
 sequence = f2[[102]]
-	
-	
 
 
 
@@ -484,17 +501,7 @@ sequence = f2[[102]]
 
 
 
-
-	
-	 
-	 
-	 
-	 
- 
-
-
-
-
+x=1
 
 
 
@@ -516,11 +523,24 @@ sequence = f2[[102]]
 
 
 
- 
- 
- 
-	 
-	 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
