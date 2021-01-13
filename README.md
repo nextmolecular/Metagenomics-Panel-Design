@@ -1,26 +1,18 @@
 # Metagenomics-Panel-Design
 Improved workflow design for designing the Metagenomics panel
 
-* Genome annotation of each species using protka
-  
-  Example:
-  prokka --kingdom Bacteria --outdir prokka_GCA_000008285 --genus Listeria --locustag GCA_000008285 GCA_000008285.1_ASM828v1_genomic.fna
- 
-* Derivation of species-specific regions using Roary on genomes of known strains
+* Identification of Open Reading Frames in different strains of species 
+   
+* Identification of Conservered open reading frames using Megablast
 
-  Example:
-  roary -f ./demo -e -n -v ./gff/*.gff
+* Identification of 150BP oligos from conserved open reading frames that are conserved among all strains of species
 
-* Selection of regions for conserved protein-coding sequences and not rRNA
+* Filtering of conserved 150BP oligoes by sequence complexity and  GC content 
 
-* Decomposition of species-specific regions into 200-mers
-
-* Screening of 200-mers for 40-60% GC content and for minimizing runs of homopolymers
-
-* Screening of 200-mers by lack of homology to hg38 and the Bacterial Pan-genome
+* Screening of 150-mers by lack of homology to representative Prokaryotic, Viral, and Eurkaryotic Genomes
 
 * Selection of primers to generate 100 Amplicons/species-target that are uniformly
   arrayed accross the genome of the organism.
 
-* Screening of primers from 200-mers by lack of homology to h38 and the Bacterial Pan-Genome
+* Screening of primers from 15o-mers by lack of homology to representative Prokaryotic, Viral, and Eurkaryotic Genomes
 
