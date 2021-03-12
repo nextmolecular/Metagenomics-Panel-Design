@@ -1,7 +1,6 @@
 
 
 
-
 get.stop.start = function(sequence){
   ##Purpose: Identify start and stop sites in a DNAString
 
@@ -27,7 +26,6 @@ get.stop.start = function(sequence){
   ss = rbind(rr1,rr2)
   ss = ss %>% mutate(frame = start %% 3)
 }
-
 
 
 
@@ -196,6 +194,8 @@ return(orf.genome.blast)
 
 
 }
+
+
 
 
 
