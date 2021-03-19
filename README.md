@@ -5,7 +5,7 @@ Improved workflow design for designing the Metagenomics panel
    
 * Identification of Conserved open reading frames using Megablast (Core Pangenome)
 
-* Identification of 150BP oligos from conserved open reading frames that are conserved among all strains of species
+* Identification of 150BP oligos from Core Pangenome that are conserved among all strains of species
 
 * Filtering of conserved 150BP oligoes by sequence complexity and  GC content 
 
