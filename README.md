@@ -14,5 +14,5 @@ Improved workflow design for designing the Metagenomics panel
 * Selection of primers to generate 100 Amplicons/species-target that are uniformly
   arrayed accross the genome of the organism.
 
-* Screening of primers from 15o-mers by lack of homology to representative Prokaryotic, Viral, and Eurkaryotic Genomes
+* Screening of primers by by lack of homology to representative Prokaryotic, Viral, and Eurkaryotic Genomes
 
