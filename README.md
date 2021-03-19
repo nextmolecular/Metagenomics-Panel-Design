@@ -1,4 +1,4 @@
-# Metagenomics-Panel-Design
+# Second-Generation Metagenomics-Panel-Design
 Improved workflow design for designing the Metagenomics panel
 
 * Identification of Open Reading Frames in different strains of species 
